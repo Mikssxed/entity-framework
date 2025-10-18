@@ -56,12 +56,13 @@ namespace entityframework.entities
             {
                 eb.Property(e => e.CreatedDate).HasDefaultValueSql("getutcdate()");
                 eb.Property(e => e.UpdatedDate).ValueGeneratedOnUpdate();
+                eb.HasOne(c => c.User).WithMany(u => u.Comments).HasForeignKey(c => c.UserId).OnDelete(DeleteBehavior.NoAction);
             });
 
             modelBuilder.Entity<User>().HasOne(u => u.Address).WithOne(a => a.User).HasForeignKey<Address>(a => a.UserId);
             modelBuilder.Entity<State>(eb =>
             {
-                eb.Property(e => e.Message).HasMaxLength(50).IsRequired();
+                eb.Property(e => e.Message).HasMaxLength(60).IsRequired();
             });
         }
     }

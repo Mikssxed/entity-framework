@@ -63,6 +63,11 @@ namespace entityframework.entities
             modelBuilder.Entity<State>(eb =>
             {
                 eb.Property(e => e.Message).HasMaxLength(60).IsRequired();
+                eb.HasData(
+                    new State { Id = 1, Message = "To Do" },
+                    new State { Id = 2, Message = "In Progress" },
+                    new State { Id = 3, Message = "Done" }
+                );
             });
         }
     }

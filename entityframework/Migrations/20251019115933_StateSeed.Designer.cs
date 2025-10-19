@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using entityframework.entities;
 
@@ -11,9 +12,11 @@ using entityframework.entities;
 namespace entityframework.Migrations
 {
     [DbContext(typeof(MyBoardsContext))]
-    partial class MyBoardsContextModelSnapshot : ModelSnapshot
+    [Migration("20251019115933_StateSeed")]
+    partial class StateSeed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,7 +51,7 @@ namespace entityframework.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Addresses", (string)null);
+                    b.ToTable("Addresses");
                 });
 
             modelBuilder.Entity("entityframework.entities.Comment", b =>
@@ -83,7 +86,7 @@ namespace entityframework.Migrations
 
                     b.HasIndex("WorkItemId");
 
-                    b.ToTable("Comments", (string)null);
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("entityframework.entities.State", b =>
@@ -101,7 +104,7 @@ namespace entityframework.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("States", (string)null);
+                    b.ToTable("States");
 
                     b.HasData(
                         new
@@ -134,7 +137,7 @@ namespace entityframework.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tags", (string)null);
+                    b.ToTable("Tags");
                 });
 
             modelBuilder.Entity("entityframework.entities.User", b =>
@@ -151,7 +154,7 @@ namespace entityframework.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("entityframework.entities.WorkItem", b =>
@@ -191,7 +194,7 @@ namespace entityframework.Migrations
 
                     b.HasIndex("StateId");
 
-                    b.ToTable("WorkItems", (string)null);
+                    b.ToTable("WorkItems");
 
                     b.HasDiscriminator().HasValue("WorkItem");
 
@@ -215,7 +218,7 @@ namespace entityframework.Migrations
 
                     b.HasIndex("WorkItemId");
 
-                    b.ToTable("WorkItemTag", (string)null);
+                    b.ToTable("WorkItemTag");
                 });
 
             modelBuilder.Entity("entityframework.entities.Epic", b =>

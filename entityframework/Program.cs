@@ -37,5 +37,44 @@ if (pendingMigrations.Any())
     dbContext.Database.Migrate();
 }
 
+var users = dbContext.Users.ToList();
+
+if (!users.Any())
+{
+    var user1 = new User
+    {
+        Email = "user1@example.com",
+        FullName = "User One",
+        Address = new Address
+        {
+            City = "Warszawa",
+            Street = "Main Street 1",
+        }
+    };
+
+    var user2 = new User
+    {
+        Email = "user2@example.com",
+        FullName = "User Two",
+        Address = new Address
+        {
+            City = "Warszawa",
+            Street = "Main Street 2",
+        }
+    };
+
+    dbContext.Users.AddRange(user1, user2);
+    dbContext.SaveChanges();
+}
+
+var webTag = new Tag { Value = "Web" };
+var uiTag = new Tag { Value = "UI" };
+var desktopTag = new Tag { Value = "Desktop" };
+var apiTag = new Tag { Value = "API" };
+var serviceTag = new Tag { Value = "Service" };
+
+dbContext.Tags.AddRange(webTag, uiTag, desktopTag, apiTag, serviceTag);
+dbContext.SaveChanges();
+
 app.Run();
 

@@ -76,5 +76,13 @@ var serviceTag = new Tag { Value = "Service" };
 dbContext.Tags.AddRange(webTag, uiTag, desktopTag, apiTag, serviceTag);
 dbContext.SaveChanges();
 
+app.MapGet("data", async (MyBoardsContext db) =>
+{
+    var onHoldEpics = await db.Epics.Where(e => e.StateId == 4).OrderBy(e => e.Priority).ToListAsync();
+    var userMostComments = await db.Comments.GroupBy(c => c.UserId).GroupBy(g => new { g.Key, count = g.Count() }).ToListAsync();
+
+    return Results.Ok(new { onHoldEpics, userMostComments });
+});
+
 app.Run();
 

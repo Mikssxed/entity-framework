@@ -9,6 +9,11 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
+
 builder.Services.AddDbContext<MyBoardsContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("MyBoardsConnectionString");
@@ -82,6 +87,45 @@ app.MapGet("data", async (MyBoardsContext db) =>
     var userMostComments = await db.Comments.GroupBy(c => c.UserId).GroupBy(g => new { g.Key, count = g.Count() }).ToListAsync();
 
     return Results.Ok(new { onHoldEpics, userMostComments });
+});
+
+app.MapPost("update", async (MyBoardsContext db) =>
+{
+    var epic = await db.Epics.FirstAsync(e => e.Id == 1);
+
+    epic.Area = "Updated area";
+    epic.Priority = 1;
+    epic.StartDate = DateTime.Now;
+
+    epic.StateId = 1;
+
+    await db.SaveChangesAsync();
+    return epic;
+});
+
+app.MapPost("create", async (MyBoardsContext db) =>
+{
+
+    var address = new Address()
+    {
+        Id = Guid.NewGuid(),
+        City = "New City123",
+        Country = "New Country123",
+        Street = "New Street 123231",
+        PostalCode = "12345"
+    };
+
+    var user = new User()
+    {
+        Email = "user1231@example.com",
+        FullName = "User123 Name",
+        Address = address
+    };
+
+    db.Users.Add(user);
+
+    await db.SaveChangesAsync();
+    return user;
 });
 
 app.Run();

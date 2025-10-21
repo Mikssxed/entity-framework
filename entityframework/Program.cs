@@ -1,4 +1,6 @@
+using System.Text.Json.Serialization;
 using entityframework.entities;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,9 +11,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.ConfigureHttpJsonOptions(options =>
+builder.Services.Configure<JsonOptions>(options =>
 {
-    options.SerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
 
 builder.Services.AddDbContext<MyBoardsContext>(options =>
@@ -83,10 +85,9 @@ dbContext.SaveChanges();
 
 app.MapGet("data", async (MyBoardsContext db) =>
 {
-    var onHoldEpics = await db.Epics.Where(e => e.StateId == 4).OrderBy(e => e.Priority).ToListAsync();
-    var userMostComments = await db.Comments.GroupBy(c => c.UserId).GroupBy(g => new { g.Key, count = g.Count() }).ToListAsync();
-
-    return Results.Ok(new { onHoldEpics, userMostComments });
+    var user = await db.Users.Include(u => u.Comments).ThenInclude(c => c.WorkItem).Include(u => u.Address).FirstAsync(u => u.Id == Guid.Parse("68366DBE-0809-490F-CC1D-08DA10AB0E61"));
+    // var userComments = await db.Comments.Where(c => c.UserId == user.Id).ToListAsync();
+    return user;
 });
 
 app.MapPost("update", async (MyBoardsContext db) =>
@@ -126,6 +127,31 @@ app.MapPost("create", async (MyBoardsContext db) =>
 
     await db.SaveChangesAsync();
     return user;
+});
+
+app.MapDelete("delete", async (MyBoardsContext db) =>
+{
+
+    var workItemTags = await db.WorkItemTag.Where(wt => wt.WorkItemId == 12).ToListAsync();
+
+    // db.WorkItemTag.RemoveRange(workItemTag);
+    // await db.SaveChangesAsync();
+
+    // db.RemoveRange(workItemTag);
+    // await db.SaveChangesAsync();
+
+    // var workItem = await db.WorkItems.FirstAsync(wi => wi.Id == 16);
+
+    // db.RemoveRange(workItem);
+    // await db.SaveChangesAsync();
+
+    var user = await db.Users.FirstAsync(u => u.Id == Guid.Parse("68366DBE-0809-490F-CC1D-08DA10AB0E61"));
+
+    var userComments = await db.Comments.Where(c => c.UserId == user.Id).ToListAsync();
+    db.Comments.RemoveRange(userComments);
+    await db.SaveChangesAsync();
+    db.Users.Remove(user);
+    await db.SaveChangesAsync();
 });
 
 app.Run();

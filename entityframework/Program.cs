@@ -85,9 +85,32 @@ dbContext.SaveChanges();
 
 app.MapGet("data", async (MyBoardsContext db) =>
 {
-    var user = await db.Users.Include(u => u.Comments).ThenInclude(c => c.WorkItem).Include(u => u.Address).FirstAsync(u => u.Id == Guid.Parse("68366DBE-0809-490F-CC1D-08DA10AB0E61"));
+    // var user = await db.Users.FirstAsync(u => u.Id == Guid.Parse("68366DBE-0809-490F-CC1D-08DA10AB0E61"));
+
+    // var entries1 = db.ChangeTracker.Entries();
+
+    // user.Email = "user1_updated@example.com";
+
+    // var entries2 = db.ChangeTracker.Entries();
+
+    // db.SaveChanges();
     // var userComments = await db.Comments.Where(c => c.UserId == user.Id).ToListAsync();
-    return user;
+
+    var minWorkItemsCount = "85";
+
+    var states = db.States.FromSqlInterpolated($@"
+        SELECT wis.id, wis.Message
+        FROM States wis
+        JOIN WorkItems wi on wi.StateId = wis.Id
+        GROUP BY wis.Id, wis.Message
+        HAVING COUNT(wi.Id) > {minWorkItemsCount}").ToList();
+
+
+    db.Database.ExecuteSqlRaw(@"
+        UPDATE Comments
+        SET UpdatedDate = GETDATE()
+        WHERE Id = 2");
+    return states;
 });
 
 app.MapPost("update", async (MyBoardsContext db) =>
@@ -145,11 +168,11 @@ app.MapDelete("delete", async (MyBoardsContext db) =>
     // db.RemoveRange(workItem);
     // await db.SaveChangesAsync();
 
-    var user = await db.Users.FirstAsync(u => u.Id == Guid.Parse("68366DBE-0809-490F-CC1D-08DA10AB0E61"));
+    var user = await db.Users.Include(u => u.Comments).FirstAsync(u => u.Id == Guid.Parse("68366DBE-0809-490F-CC1D-08DA10AB0E61"));
 
-    var userComments = await db.Comments.Where(c => c.UserId == user.Id).ToListAsync();
-    db.Comments.RemoveRange(userComments);
-    await db.SaveChangesAsync();
+    // var userComments = await db.Comments.Where(c => c.UserId == user.Id).ToListAsync();
+    // db.Comments.RemoveRange(userComments);
+    // await db.SaveChangesAsync();
     db.Users.Remove(user);
     await db.SaveChangesAsync();
 });

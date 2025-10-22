@@ -58,7 +58,7 @@ namespace entityframework.entities
             {
                 eb.Property(e => e.CreatedDate).HasDefaultValueSql("getutcdate()");
                 eb.Property(e => e.UpdatedDate).ValueGeneratedOnUpdate();
-                eb.HasOne(c => c.User).WithMany(u => u.Comments).HasForeignKey(c => c.UserId).OnDelete(DeleteBehavior.NoAction);
+                eb.HasOne(c => c.User).WithMany(u => u.Comments).HasForeignKey(c => c.UserId).OnDelete(DeleteBehavior.ClientCascade);
             });
 
             modelBuilder.Entity<User>().HasOne(u => u.Address).WithOne(a => a.User).HasForeignKey<Address>(a => a.UserId);

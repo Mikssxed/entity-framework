@@ -96,21 +96,27 @@ app.MapGet("data", async (MyBoardsContext db) =>
     // db.SaveChanges();
     // var userComments = await db.Comments.Where(c => c.UserId == user.Id).ToListAsync();
 
-    var minWorkItemsCount = "85";
+    // var minWorkItemsCount = "85";
 
-    var states = db.States.FromSqlInterpolated($@"
-        SELECT wis.id, wis.Message
-        FROM States wis
-        JOIN WorkItems wi on wi.StateId = wis.Id
-        GROUP BY wis.Id, wis.Message
-        HAVING COUNT(wi.Id) > {minWorkItemsCount}").ToList();
+    // var states = db.States.FromSqlInterpolated($@"
+    //     SELECT wis.id, wis.Message
+    //     FROM States wis
+    //     JOIN WorkItems wi on wi.StateId = wis.Id
+    //     GROUP BY wis.Id, wis.Message
+    //     HAVING COUNT(wi.Id) > {minWorkItemsCount}").ToList();
 
 
-    db.Database.ExecuteSqlRaw(@"
-        UPDATE Comments
-        SET UpdatedDate = GETDATE()
-        WHERE Id = 2");
-    return states;
+    // db.Database.ExecuteSqlRaw(@"
+    //     UPDATE Comments
+    //     SET UpdatedDate = GETDATE()
+    //     WHERE Id = 2");
+    // return states;
+
+    // var topAuthors = db.ViewTopAuthors.ToList();
+    // return topAuthors;
+
+    var addresses = db.Addresses.Where(a => a.Coordinate.Latitude > 10).ToList();
+    return addresses;
 });
 
 app.MapPost("update", async (MyBoardsContext db) =>

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using entityframework.entities.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace entityframework.entities
@@ -24,6 +25,8 @@ namespace entityframework.entities
         public DbSet<WorkItemTag> WorkItemTag { get; set; }
 
         public DbSet<State> States { get; set; }
+
+        public DbSet<TopAuthor> ViewTopAuthors { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -71,6 +74,19 @@ namespace entityframework.entities
                     new State { Id = 3, Message = "Done" }
                 );
             });
+
+            modelBuilder.Entity<TopAuthor>(eb =>
+            {
+                eb.ToView("View_TopAuthors");
+                eb.HasNoKey();
+            });
+
+            modelBuilder.Entity<Address>()
+                .OwnsOne(a => a.Coordinate, cmb =>
+                {
+                    cmb.Property(c => c.Latitude).HasPrecision(18, 7);
+                    cmb.Property(c => c.Longitude).HasPrecision(18, 7);
+                });
         }
     }
 }

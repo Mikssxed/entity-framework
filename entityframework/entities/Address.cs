@@ -14,7 +14,7 @@ namespace entityframework.entities
         public string Street { get; set; }
         public string PostalCode { get; set; }
 
-        public User User { get; set; }
+        public virtual User User { get; set; }
         public Guid UserId { get; set; }
         public Coordinate Coordinate { get; set; }
     }

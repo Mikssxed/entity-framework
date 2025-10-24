@@ -12,10 +12,10 @@ namespace entityframework.entities
         public DateTime CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
 
-        public WorkItem WorkItem { get; set; }
+        public virtual WorkItem WorkItem { get; set; }
         public int WorkItemId { get; set; }
 
-        public User User { get; set; }
+        public virtual User User { get; set; }
         public Guid UserId { get; set; }
     }
 }

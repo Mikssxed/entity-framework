@@ -1,4 +1,6 @@
+using System.Linq.Expressions;
 using System.Text.Json.Serialization;
+using entityframework.dto;
 using entityframework.entities;
 using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +21,9 @@ builder.Services.Configure<JsonOptions>(options =>
 builder.Services.AddDbContext<MyBoardsContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("MyBoardsConnectionString");
-    options.UseSqlServer(connectionString);
+    options
+    // .UseLazyLoadingProxies()
+    .UseSqlServer(connectionString);
 });
 
 var app = builder.Build();
@@ -83,6 +87,37 @@ var serviceTag = new Tag { Value = "Service" };
 dbContext.Tags.AddRange(webTag, uiTag, desktopTag, apiTag, serviceTag);
 dbContext.SaveChanges();
 
+app.MapGet("pagination", async (MyBoardsContext db) =>
+{
+    // user input
+    var filter = "a";
+    string sortBy = "FullName";
+    bool sortByDescending = false;
+    int pageNumber = 2;
+    int pageSize = 5;
+
+    var query = db.Users.Where(u => filter == null || u.FullName.ToLower().Contains(filter.ToLower()) || u.Email.ToLower().Contains(filter.ToLower()));
+
+    var totalItems = query.Count();
+
+    if (sortBy != null)
+    {
+        var columnsSelector = new Dictionary<string, Expression<Func<User, object>>>
+        {
+            {nameof(User.Email), user => user.Email},
+            {nameof(User.FullName), user => user.FullName},
+        };
+
+        var sortByExpression = columnsSelector[sortBy];
+        query = sortByDescending ? query.OrderByDescending(sortByExpression) : query.OrderBy(sortByExpression);
+    }
+
+    var result = query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
+    var pagedResult = new PagedResult<User>(result, totalItems, pageSize, pageNumber);
+    return pagedResult;
+});
+
 app.MapGet("data", async (MyBoardsContext db) =>
 {
     // var user = await db.Users.FirstAsync(u => u.Id == Guid.Parse("68366DBE-0809-490F-CC1D-08DA10AB0E61"));
@@ -115,8 +150,22 @@ app.MapGet("data", async (MyBoardsContext db) =>
     // var topAuthors = db.ViewTopAuthors.ToList();
     // return topAuthors;
 
-    var addresses = db.Addresses.Where(a => a.Coordinate.Latitude > 10).ToList();
-    return addresses;
+    // var withAddress = true;
+
+    // var user = db.Users.First(u => u.Id == Guid.Parse("68366DBE-0809-490F-CC1D-08DA10AB0E61"));
+
+    // if (withAddress)
+    // {
+    //     var result = new { FullName = user.FullName, Address = $"{user.Address.Street}, {user.Address.City}" };
+    //     return result;
+    // }
+
+    // var addresses = db.Addresses.Where(a => a.Coordinate.Latitude > 10).ToList();
+    // return new { FullName = user.FullName, Address = "-" };
+
+    var comments = await db.Users.Include(u => u.Address).Include(u => u.Comments).Where(u => u.Address.Country == "Albania").SelectMany(u => u.Comments).Select(c => c.Message).ToListAsync();
+
+    return comments;
 });
 
 app.MapPost("update", async (MyBoardsContext db) =>

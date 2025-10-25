@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using System.Text.Json.Serialization;
+using entityframework;
 using entityframework.dto;
 using entityframework.entities;
 using Microsoft.AspNetCore.Http.Json;
@@ -47,6 +48,8 @@ if (pendingMigrations.Any())
 {
     dbContext.Database.Migrate();
 }
+
+DataGenerator.Seed(dbContext);
 
 var users = dbContext.Users.ToList();
 

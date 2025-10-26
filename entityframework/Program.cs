@@ -3,10 +3,16 @@ using System.Text.Json.Serialization;
 using entityframework;
 using entityframework.dto;
 using entityframework.entities;
+using entityframework.Sieve;
 using Microsoft.AspNetCore.Http.Json;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Sieve.Models;
+using Sieve.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddScoped<ISieveProcessor, ApplicationSieveProcessor>();
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -14,7 +20,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.Configure<JsonOptions>(options =>
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
 {
     options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
@@ -233,6 +239,25 @@ app.MapDelete("delete", async (MyBoardsContext db) =>
     // await db.SaveChangesAsync();
     db.Users.Remove(user);
     await db.SaveChangesAsync();
+});
+
+app.MapPost("sieve", async ([FromBody] SieveModel query, ISieveProcessor sieveProcessor, MyBoardsContext db) =>
+{
+    var epics = db.Epics.Include(e => e.Author).AsQueryable();
+
+    var dtos = await sieveProcessor.Apply(query, epics).Select(e => new EpicDto()
+    {
+        Id = e.Id,
+        Area = e.Area,
+        Priority = e.Priority,
+        StartDate = e.StartDate,
+        AuthorFullName = e.Author.FullName
+    }).ToListAsync();
+
+    var totalCount = await sieveProcessor.Apply(query, epics, applyPagination: false, applySorting: false).CountAsync();
+
+    var result = new PagedResult<EpicDto>(dtos, totalCount, query.PageSize.Value, query.Page.Value);
+    return result;
 });
 
 app.Run();
